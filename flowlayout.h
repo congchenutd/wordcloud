@@ -4,6 +4,7 @@
 #include <QLayout>
 #include <QRect>
 #include <QWidgetItem>
+#include <QStyle>
 //! [0]
 class FlowLayout : public QLayout
 {

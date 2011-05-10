@@ -4,7 +4,7 @@
 #include <QtGui/QWidget>
 #include <QLabel>
 #include <QMap>
-#include "ui_WordCloudWidget.h"
+#include <QScrollArea>
 
 class FlowLayout;
 class WordLabel;
@@ -16,16 +16,24 @@ class WordCloudWidget : public QWidget
 	Q_OBJECT
 
 public:
-	WordCloudWidget(QWidget* parent = 0, Qt::WFlags flags = 0);
+	WordCloudWidget(QWidget* parent = 0);
 	void addWord(WordLabel* word);
-	void addWord(const QString& text, int size);
+	void addWord(const QString& text, int size = 12);
 	void highLight(const QStringList& words);
+	void removeWord(WordLabel* word);
+	void removeWord(const QString& text);
+	QList<WordLabel*> getSelected() const;
+	void normalizeSizes();
+	WordLabel* findWord(const QString& text) const;
 
-private slots:
-	void onDel(const QString& word);
+protected:
+	virtual void mousePressEvent(QMouseEvent* event);
 
 private:
-	Ui::WordCloudWidgetClass ui;
+	void unselectAll();
+
+private:
+	enum {minFont = 10, maxFont = 30};
 	FlowLayout* layout;
 	WordList wordList;
 };
@@ -35,28 +43,21 @@ class WordLabel : public QLabel
 	Q_OBJECT
 
 public:
-	WordLabel(const QString& text, int size, QWidget* parent);
+	WordLabel(const QString& text, int s, QWidget* parent);
+	void setSize       (int s);
 	void setHighLighted(bool highLighted);
 	void setSelected   (bool selected);
+	int  getSize()       const { return size;        }
 	bool isHighLighted() const { return highLighted; }
 	bool isSelected   () const { return selected;    }
 
 protected:
-	virtual void mousePressEvent (QMouseEvent* event);
-	virtual void paintEvent      (QPaintEvent* event);
-	virtual void contextMenuEvent(QContextMenuEvent* event);
-
-private slots:
-	void onAdd();
-	void onDel();
-
-signals:
-	void addRequested(QString);
-	void delRequested(QString);
+	virtual void paintEvent(QPaintEvent* event);
 
 private:
 	bool selected;
 	bool highLighted;
+	int  size;
 };
 
 #endif // WORDCLOUDWIDGET_H
