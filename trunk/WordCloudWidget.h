@@ -25,15 +25,13 @@ public:
 	QList<WordLabel*> getSelected() const;
 	void normalizeSizes();
 	WordLabel* findWord(const QString& text) const;
+	void unselectAll();
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
 
 private:
-	void unselectAll();
-
-private:
-	enum {minFont = 10, maxFont = 30};
+	enum {minFont = 12, maxFont = 20};
 	FlowLayout* layout;
 	WordList wordList;
 };

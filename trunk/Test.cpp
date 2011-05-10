@@ -9,6 +9,7 @@ Test::Test(QWidget *parent)
 	setPalette(newPalette);
 
 	ui.widget->addWord("Hello", 30);
+	ui.widget->addWord("World", 10);
 }
 
 Test::~Test()
