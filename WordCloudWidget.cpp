@@ -2,10 +2,11 @@
 #include "FlowLayout.h"
 #include <QPainter>
 #include <QMouseEvent>
+#include <QPaintEngine>
 
 WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 {
-	layout = new FlowLayout(this);
+	layout = new FlowLayout(this, 10, 5, 8);
 	setLayout(layout);
 
 	QPalette newPalette = palette();
@@ -91,7 +92,7 @@ void WordCloudWidget::normalizeSizes()
 	}
 	foreach(WordLabel* word, wordList)
 	{
-		int size = maxSize == minSize ? maxFont : 
+		int size = maxSize == minSize ? maxFont :
 			maxFont * (word->getSize() - minSize) / (maxSize - minSize) + minFont;
 		word->setSize(size);
 	}
@@ -99,7 +100,7 @@ void WordCloudWidget::normalizeSizes()
 
 WordLabel* WordCloudWidget::findWord(const QString& text) const
 {
-	WordList::Iterator it = wordList.find(text);
+	WordList::ConstIterator it = wordList.find(text);
 	return (it != wordList.end()) ? it.value() : 0;
 }
 
@@ -130,13 +131,15 @@ void WordLabel::paintEvent(QPaintEvent* event)
 		{
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(Qt::gray);
-		}		
+		}
 		if(selected) {
 			painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
 		}
 		painter.drawRect(rect());
 	}
-	QLabel::paintEvent(event);
+	painter.setBrush(Qt::NoBrush);
+	painter.setPen(QPen());
+	painter.drawText(0, QFontMetrics(font()).tightBoundingRect(text()).height(), text());
 }
 
 void WordLabel::setHighLighted(bool highLight)
