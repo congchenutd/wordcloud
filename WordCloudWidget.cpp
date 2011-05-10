@@ -122,7 +122,7 @@ void WordLabel::setSize(int s)
 	setFont(f);
 }
 
-void WordLabel::paintEvent(QPaintEvent* event)
+void WordLabel::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
 	if(selected || highLighted)
