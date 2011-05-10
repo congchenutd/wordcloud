@@ -2,13 +2,9 @@
 #include "FlowLayout.h"
 #include <QPainter>
 #include <QMouseEvent>
-#include <QMenu>
-#include <QContextMenuEvent>
 
-WordCloudWidget::WordCloudWidget(QWidget *parent, Qt::WFlags flags)
-	: QWidget(parent, flags)
+WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 {
-	ui.setupUi(this);
 	layout = new FlowLayout(this);
 	setLayout(layout);
 
@@ -19,53 +15,110 @@ WordCloudWidget::WordCloudWidget(QWidget *parent, Qt::WFlags flags)
 
 void WordCloudWidget::addWord(WordLabel* word)
 {
+	if(wordList.contains(word->text()))
+		return;
 	layout->addWidget(word);
 	wordList.insert(word->text(), word);
-	connect(word, SIGNAL(delRequested(QString)), this, SLOT(onDel(QString)));
 }
 
 void WordCloudWidget::addWord(const QString& text, int size) {
-	addWord(new WordLabel(text, size, this));
+	if(!wordList.contains(text))
+		addWord(new WordLabel(text, size, this));
 }
 
 void WordCloudWidget::highLight(const QStringList& words)
 {
-	foreach(WordLabel* word, wordList)
+	foreach(WordLabel* word, wordList)   // unhighLight others
 		word->setHighLighted(false);
-	foreach(QString word, words)
+	foreach(QString word, words)         // highlight the list
+		if(WordLabel* label = findWord(word))
+			label->setHighLighted(true);
+}
+
+void WordCloudWidget::mousePressEvent(QMouseEvent* event)
+{
+	WordLabel* clicked = static_cast<WordLabel*>(childAt(event->pos()));
+	if(!clicked)
+		return unselectAll();                     // click on blank area
+
+	// right click on a selected item, ignore
+	if(event->button() == Qt::RightButton && clicked->isSelected())
+		return;
+
+	if(event->modifiers() == Qt::NoModifier)
+		unselectAll();
+	clicked->setSelected(true);                   // select this
+}
+
+void WordCloudWidget::unselectAll() {
+	foreach(WordLabel* word, wordList)
+		word->setSelected(false);
+}
+
+QList<WordLabel*> WordCloudWidget::getSelected() const
+{
+	QList<WordLabel*> result;
+	foreach(WordLabel* word, wordList)
+		if(word->isSelected())
+			result << word;
+	return result;
+}
+
+void WordCloudWidget::removeWord(WordLabel* word)
+{
+	if(!word || !wordList.contains(word->text()))
+		return;
+	layout->removeWidget(word);
+	wordList.remove(word->text());
+	word->deleteLater();
+}
+
+void WordCloudWidget::removeWord(const QString& text)
+{
+	WordList::Iterator it = wordList.find(text);
+	if(it != wordList.end())
+		removeWord(it.value());
+}
+
+void WordCloudWidget::normalizeSizes()
+{
+	int minSize = 1000;
+	int maxSize = 0;
+	foreach(WordLabel* word, wordList)
 	{
-		WordList::Iterator it = wordList.find(word);
-		if(it != wordList.end())
-			it.value()->setHighLighted(true);
+		minSize = qMin(minSize, word->getSize());
+		maxSize = qMax(maxSize, word->getSize());
+	}
+	foreach(WordLabel* word, wordList)
+	{
+		int size = maxSize == minSize ? maxFont : 
+			maxFont * (word->getSize() - minSize) / (maxSize - minSize) + minFont;
+		word->setSize(size);
 	}
 }
 
-void WordCloudWidget::onDel(const QString& word)
+WordLabel* WordCloudWidget::findWord(const QString& text) const
 {
-	WordList::Iterator it = wordList.find(word);
-	if(it != wordList.end())
-	{
-		layout->removeWidget(it.value());
-		wordList.erase(it);
-		delete it.value();
-	}
+	WordList::Iterator it = wordList.find(text);
+	return (it != wordList.end()) ? it.value() : 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-WordLabel::WordLabel(const QString& text, int size, QWidget* parent)
+WordLabel::WordLabel(const QString& text, int s, QWidget* parent)
 : QLabel(text, parent)
 {
 	selected    = false;
 	highLighted = false;
+	setSize(s);
+}
+
+void WordLabel::setSize(int s)
+{
+	size = s;
 	QFont f = font();
 	f.setPixelSize(size);
 	setFont(f);
-}
-
-void WordLabel::mousePressEvent(QMouseEvent* event) {
-	if(event->button() == Qt::LeftButton)
-		setSelected(!selected);
 }
 
 void WordLabel::paintEvent(QPaintEvent* event)
@@ -96,24 +149,4 @@ void WordLabel::setSelected(bool select)
 {
 	selected = select;
 	update();
-}
-
-void WordLabel::contextMenuEvent(QContextMenuEvent* event)
-{
-	QAction actionAdd(tr("Add to paper"), this);
-	QAction actionDel(tr("Delete"), this);
-	connect(&actionAdd, SIGNAL(triggered()), this, SLOT(onAdd()));
-	connect(&actionDel, SIGNAL(triggered()), this, SLOT(onDel()));
-	QMenu menu(this);
-	menu.addAction(&actionAdd);
-	menu.addAction(&actionDel);
-	menu.exec(event->globalPos());
-}
-
-void WordLabel::onAdd() {
-	emit addRequested(text());
-}
-
-void WordLabel::onDel() {
-	emit delRequested(text());
 }
