@@ -31,7 +31,7 @@ protected:
 	virtual void mousePressEvent(QMouseEvent* event);
 
 private:
-	enum {minFont = 12, maxFont = 20};
+	enum {minFont = 12, maxFont = 18};
 	FlowLayout* layout;
 	WordList wordList;
 };

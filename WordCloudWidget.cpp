@@ -130,7 +130,7 @@ void WordLabel::paintEvent(QPaintEvent*)
 		if(highLighted)
 		{
 			painter.setPen(Qt::NoPen);
-			painter.setBrush(Qt::gray);
+			painter.setBrush(Qt::lightGray);
 		}
 		if(selected) {
 			painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
