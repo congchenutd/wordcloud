@@ -9,9 +9,9 @@ WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 	layout = new FlowLayout(this, 10, 5, 8);
 	setLayout(layout);
 
-	QPalette newPalette = palette();
-	newPalette.setColor(QPalette::Window, Qt::white);
-	setPalette(newPalette);
+//	QPalette newPalette = palette();
+//	newPalette.setColor(QPalette::Window, Qt::white);
+//	setPalette(newPalette);
 }
 
 void WordCloudWidget::addWord(WordLabel* word)
@@ -67,7 +67,7 @@ QList<WordLabel*> WordCloudWidget::getSelected() const
 
 void WordCloudWidget::removeWord(WordLabel* word)
 {
-	if(!word || !wordList.contains(word->text()))
+	if(word == 0 || !wordList.contains(word->text()))
 		return;
 	layout->removeWidget(word);
 	wordList.remove(word->text());
@@ -138,18 +138,18 @@ void WordLabel::paintEvent(QPaintEvent*)
 		painter.drawRect(rect());
 	}
 	painter.setBrush(Qt::NoBrush);
-	painter.setPen(QPen());
+	painter.setPen(QPen());   // use default pen
 	painter.drawText(0, QFontMetrics(font()).tightBoundingRect(text()).height(), text());
 }
 
 void WordLabel::setHighLighted(bool highLight)
 {
 	highLighted = highLight;
-	update();
+	update();   // repaint
 }
 
 void WordLabel::setSelected(bool select)
 {
 	selected = select;
-	update();
+	update();   // repaint
 }

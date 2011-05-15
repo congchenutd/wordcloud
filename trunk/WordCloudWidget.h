@@ -42,7 +42,7 @@ class WordLabel : public QLabel
 
 public:
 	WordLabel(const QString& text, int s, QWidget* parent);
-	void setSize       (int s);
+	void setSize       (int s);                          // font size
 	void setHighLighted(bool highLighted);
 	void setSelected   (bool selected);
 	int  getSize()       const { return size;        }
@@ -55,7 +55,7 @@ protected:
 private:
 	bool selected;
 	bool highLighted;
-	int  size;
+	int  size;          // font size
 };
 
 #endif // WORDCLOUDWIDGET_H
