@@ -4,6 +4,8 @@
 #include <QMouseEvent>
 #include <QPaintEngine>
 
+enum {minFont = 12, maxFont = 24};
+
 WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 {
 	layout = new FlowLayout(this, 10, 5, 8);
