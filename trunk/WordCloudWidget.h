@@ -10,6 +10,7 @@ class FlowLayout;
 class WordLabel;
 
 typedef QMap<QString, WordLabel*> WordList;
+typedef enum {EXACTLY, START_WITH} SearchCriteria;
 
 class WordCloudWidget : public QWidget
 {
@@ -25,10 +26,19 @@ public:
 	QList<WordLabel*> getSelected() const;
 	void normalizeSizes();
 	WordLabel* findWord(const QString& text) const;
+	QList<WordLabel*> findWord(const QString& text, SearchCriteria criteria = EXACTLY);
 	void unselectAll();
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
+	virtual void mouseDoubleClickEvent(QMouseEvent*);
+	virtual void keyPressEvent(QKeyEvent* event);
+
+private slots:
+	void onSizeChanged();
+
+signals:
+	void doubleClicked(QString);
 
 private:
 	FlowLayout* layout;
@@ -50,6 +60,9 @@ public:
 
 protected:
 	virtual void paintEvent(QPaintEvent* event);
+
+signals:
+	void sizeChanged();
 
 private:
 	bool selected;
