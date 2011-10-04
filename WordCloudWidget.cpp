@@ -53,6 +53,15 @@ void WordCloudWidget::mousePressEvent(QMouseEvent* event)
 	clicked->setSelected(true);                   // select this
 }
 
+void WordCloudWidget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	WordLabel* label = static_cast<WordLabel*>(childAt(event->pos()));
+	if(label != 0)
+		emit doubleClicked(label->text());
+	else
+		emit doubleClicked(QString());
+}
+
 void WordCloudWidget::unselectAll() {
 	foreach(WordLabel* word, wordList)
 		word->setSelected(false);
@@ -106,6 +115,31 @@ WordLabel* WordCloudWidget::findWord(const QString& text) const
 	return (it != wordList.end()) ? it.value() : 0;
 }
 
+QList<WordLabel*> WordCloudWidget::findWord(const QString& text, SearchCriteria criteria /*= EXACTLY*/)
+{
+	QList<WordLabel*> result;
+	if(criteria == EXACTLY)
+	{
+		WordList::ConstIterator it = wordList.find(text);
+		if(it != wordList.end())
+			result << it.value();
+	}
+	else if(criteria == START_WITH) {
+		foreach(WordLabel* label, wordList)
+			if(label->text().startsWith(text, Qt::CaseInsensitive))
+				result << label->text();
+	}
+	return result;
+}
+
+void WordCloudWidget::onSizeChanged() {
+	normalizeSizes();
+}
+
+void WordCloudWidget::keyPressEvent(QKeyEvent* event)
+{
+//	event->key()
+}
 
 //////////////////////////////////////////////////////////////////////////
 WordLabel::WordLabel(const QString& text, int s, QWidget* parent)
@@ -122,6 +156,7 @@ void WordLabel::setSize(int s)
 	QFont f = font();
 	f.setPixelSize(size);
 	setFont(f);
+	emit sizeChanged();
 }
 
 void WordLabel::paintEvent(QPaintEvent*)
