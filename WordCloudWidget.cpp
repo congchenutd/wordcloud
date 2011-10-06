@@ -16,17 +16,15 @@ WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 //	setPalette(newPalette);
 }
 
-void WordCloudWidget::addWord(WordLabel* word)
+void WordCloudWidget::addWord(const QString& text, int size)
 {
-	if(wordList.contains(word->text()))
-		return;
-	layout->addWidget(word);
-	wordList.insert(word->text(), word);
-}
-
-void WordCloudWidget::addWord(const QString& text, int size) {
 	if(!wordList.contains(text))
-		addWord(new WordLabel(text, size, this));
+	{
+		WordLabel* wordLabel = new WordLabel(text, size, this);
+		layout->addWidget(wordLabel);
+		wordList.insert(text, wordLabel);
+		sort();
+	}
 }
 
 void WordCloudWidget::highLight(const QStringList& words)
@@ -48,7 +46,7 @@ void WordCloudWidget::mousePressEvent(QMouseEvent* event)
 	if(event->button() == Qt::RightButton && clicked->isSelected())
 		return;
 
-	if(event->modifiers() == Qt::NoModifier)
+	if(event->modifiers() == Qt::NoModifier)      
 		unselectAll();
 	clicked->setSelected(true);                   // select this
 }
@@ -56,10 +54,7 @@ void WordCloudWidget::mousePressEvent(QMouseEvent* event)
 void WordCloudWidget::mouseDoubleClickEvent(QMouseEvent* event)
 {
 	WordLabel* label = static_cast<WordLabel*>(childAt(event->pos()));
-	if(label != 0)
-		emit doubleClicked(label->text());
-	else
-		emit doubleClicked(QString());
+	emit doubleClicked(label != 0 ? label->text() : QString());
 }
 
 void WordCloudWidget::unselectAll() {
@@ -85,18 +80,18 @@ void WordCloudWidget::removeWord(WordLabel* word)
 	word->deleteLater();
 }
 
-void WordCloudWidget::removeWord(const QString& text)
-{
-	WordList::Iterator it = wordList.find(text);
-	if(it != wordList.end())
-		removeWord(it.value());
-}
+//void WordCloudWidget::removeWord(const QString& text)
+//{
+//	WordList::Iterator it = wordList.find(text);
+//	if(it != wordList.end())
+//		removeWord(it.value());
+//}
 
 void WordCloudWidget::normalizeSizes()
 {
 	int minSize = 1000;
 	int maxSize = 0;
-	foreach(WordLabel* word, wordList)
+	foreach(WordLabel* word, wordList)            // find min/max
 	{
 		minSize = qMin(minSize, word->getSize());
 		maxSize = qMax(maxSize, word->getSize());
@@ -115,30 +110,44 @@ WordLabel* WordCloudWidget::findWord(const QString& text) const
 	return (it != wordList.end()) ? it.value() : 0;
 }
 
-QList<WordLabel*> WordCloudWidget::findWord(const QString& text, SearchCriteria criteria /*= EXACTLY*/)
-{
-	QList<WordLabel*> result;
-	if(criteria == EXACTLY)
-	{
-		WordList::ConstIterator it = wordList.find(text);
-		if(it != wordList.end())
-			result << it.value();
-	}
-	else if(criteria == START_WITH) {
-		foreach(WordLabel* label, wordList)
-			if(label->text().startsWith(text, Qt::CaseInsensitive))
-				result << label->text();
-	}
-	return result;
-}
+//QList<WordLabel*> WordCloudWidget::findWord(const QString& text, SearchCriteria criteria)
+//{
+//	QList<WordLabel*> result;
+//	if(criteria == EXACTLY)
+//	{
+//		WordList::ConstIterator it = wordList.find(text);
+//		if(it != wordList.end())
+//			result << it.value();
+//	}
+//	else if(criteria == START_WITH) {
+//		foreach(WordLabel* label, wordList)
+//			if(label->text().startsWith(text, Qt::CaseInsensitive))
+//				result << label->text();
+//	}
+//	return result;
+//}
 
 void WordCloudWidget::onSizeChanged() {
 	normalizeSizes();
 }
 
-void WordCloudWidget::keyPressEvent(QKeyEvent* event)
+void WordCloudWidget::sort()
 {
-//	event->key()
+	// clear all words from the layout
+	foreach(WordLabel* word, wordList)
+		layout->removeWidget(word);
+
+	// insert them again in order
+	for(WordList::Iterator it = wordList.begin(); it != wordList.end(); ++it)
+		layout->addWidget(it.value());
+}
+
+void WordCloudWidget::renameWord(WordLabel* word, const QString& name)
+{
+	wordList.remove(word->text());  // remove the old one from the map
+	wordList.insert(name, word);
+	word->setText(name);
+	sort();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,12 +173,12 @@ void WordLabel::paintEvent(QPaintEvent*)
 	QPainter painter(this);
 	if(selected || highLighted)
 	{
-		if(highLighted)
+		if(highLighted)    // shadow
 		{
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(Qt::lightGray);
 		}
-		if(selected) {
+		if(selected) {     // red rectangle
 			painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
 		}
 		painter.drawRect(rect());
