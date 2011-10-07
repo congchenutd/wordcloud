@@ -8,6 +8,8 @@
 
 class FlowLayout;
 class WordLabel;
+class QNetworkAccessManager;
+class QNetworkReply;
 
 typedef QMap<QString, WordLabel*> WordList;
 typedef enum {EXACTLY, START_WITH} SearchCriteria;
@@ -27,8 +29,9 @@ public:
 	void normalizeSizes();
 	WordLabel* findWord(const QString& text) const;
 //	QList<WordLabel*> findWord(const QString& text, SearchCriteria criteria = EXACTLY);
-	void unselectAll();
-	void sort();
+	void unselectAll();    // set all words unselected
+	void unrelateAll();    // set all words unrelated
+	void sort();           // reorder the word widgets in the layout
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
@@ -36,6 +39,7 @@ protected:
 
 private slots:
 	void onSizeChanged();
+	void onNetworkReply(QNetworkReply*);
 
 signals:
 	void doubleClicked(QString);
@@ -43,6 +47,7 @@ signals:
 private:
 	FlowLayout* layout;
 	WordList wordList;
+	QNetworkAccessManager* networkAccessManager;
 };
 
 class WordLabel : public QLabel
@@ -53,6 +58,7 @@ public:
 	WordLabel(const QString& text, int s, QWidget* parent);
 	void setSize       (int s);                          // font size
 	void setHighLighted(bool highLighted);
+	void setRelated    (bool relate);
 	void setSelected   (bool selected);
 	int  getSize()       const { return size;        }
 	bool isHighLighted() const { return highLighted; }   // shadow
@@ -65,9 +71,10 @@ signals:
 	void sizeChanged();
 
 private:
-	bool selected;
-	bool highLighted;
+	bool selected;      // draw a red selection rectangle
+	bool highLighted;   // shadowed
 	int  size;          // font size
+	bool related;       // related to the selected
 };
 
 #endif // WORDCLOUDWIDGET_H
