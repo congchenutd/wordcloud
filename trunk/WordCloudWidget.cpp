@@ -1,5 +1,6 @@
 #include "WordCloudWidget.h"
 #include "FlowLayout.h"
+#include "Thesaurus.h"
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPaintEngine>
@@ -18,9 +19,8 @@ WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 //	newPalette.setColor(QPalette::Window, Qt::white);
 //	setPalette(newPalette);
 
-	networkAccessManager = new QNetworkAccessManager(this);
-	connect(networkAccessManager, SIGNAL(finished(QNetworkReply*)),
-			this, SLOT(onNetworkReply(QNetworkReply*)));
+	thesaurus = new BigHugeThesaurus(this);
+	connect(thesaurus, SIGNAL(response(QStringList)), this, SLOT(onThesaurus(QStringList)));
 }
 
 void WordCloudWidget::addWord(const QString& text, int size)
@@ -56,24 +56,19 @@ void WordCloudWidget::mousePressEvent(QMouseEvent* event)
 	// single selection, if no modifier
 	if(event->modifiers() == Qt::NoModifier)      
 		unselectAll();
+	controlPressed = event->modifiers() == Qt::ControlModifier;
 	clicked->setSelected(true);                   // select this
 
 	// issue request for related words
-	networkAccessManager->get(QNetworkRequest(QUrl(
-		tr("http://words.bighugelabs.com/api/2/4c0966eb0e369b282100a3c599c66c46/%1/")
-			.arg(clicked->text()))));
+	thesaurus->request(clicked->text());
 }
 
-void WordCloudWidget::onNetworkReply(QNetworkReply* reply)
+void WordCloudWidget::onThesaurus(const QStringList& list)
 {
-	unrelateAll();                                        // reset related status
-	QTextStream is(reply);
-	while(!is.atEnd()) {
-		QStringList sections = is.readLine().split("|");  // a line contains 3 sections
-		if(sections.size() == 3)
-			if(WordLabel* label = findWord(sections[2]))  // last section is the word
-				label->setRelated(true);
-	}
+	unrelateAll();                                // reset related status
+	foreach(QString related, list)
+		if(WordLabel* label = findWord(related))
+			label->setRelated(true);              // select them
 }
 
 void WordCloudWidget::mouseDoubleClickEvent(QMouseEvent* event)
