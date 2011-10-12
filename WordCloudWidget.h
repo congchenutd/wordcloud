@@ -8,8 +8,7 @@
 
 class FlowLayout;
 class WordLabel;
-class QNetworkAccessManager;
-class QNetworkReply;
+class Thesaurus;
 
 typedef QMap<QString, WordLabel*> WordList;
 typedef enum {EXACTLY, START_WITH} SearchCriteria;
@@ -32,6 +31,7 @@ public:
 	void unselectAll();    // set all words unselected
 	void unrelateAll();    // set all words unrelated
 	void sort();           // reorder the word widgets in the layout
+	bool controlIsPressed() const { return controlPressed; }
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
@@ -39,7 +39,7 @@ protected:
 
 private slots:
 	void onSizeChanged();
-	void onNetworkReply(QNetworkReply*);
+	void onThesaurus(const QStringList& list);
 
 signals:
 	void doubleClicked(QString);
@@ -47,7 +47,8 @@ signals:
 private:
 	FlowLayout* layout;
 	WordList wordList;
-	QNetworkAccessManager* networkAccessManager;
+	Thesaurus* thesaurus;
+	bool controlPressed;   // ctrl pressed when the context menu is triggered
 };
 
 class WordLabel : public QLabel
