@@ -1,6 +1,7 @@
 #include "WordCloudWidget.h"
 #include "FlowLayout.h"
 #include "Thesaurus.h"
+#include "OptionDlg.h"
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPaintEngine>
@@ -8,16 +9,13 @@
 #include <QNetworkReply>
 #include <QTextStream>
 
-enum {minFont = 12, maxFont = 24};
-
 WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 {
+	minFont = UserSetting::getInstance()->getFont().pointSize();
+	maxFont = 2 * minFont;
+
 	layout = new FlowLayout(this, 10, 5, 8);
 	setLayout(layout);
-
-//	QPalette newPalette = palette();
-//	newPalette.setColor(QPalette::Window, Qt::white);
-//	setPalette(newPalette);
 
 	thesaurus = new BigHugeThesaurus(this);
 	connect(thesaurus, SIGNAL(response(QStringList)), this, SLOT(onThesaurus(QStringList)));
@@ -123,8 +121,8 @@ void WordCloudWidget::normalizeSizes()
 	}
 	foreach(WordLabel* word, wordList)
 	{
-		int size = maxSize == minSize ? maxFont :
-			maxFont * (word->getSize() - minSize) / (maxSize - minSize) + minFont;
+		int size = (maxSize == minSize) ? maxFont :
+			(maxFont-minFont) * (word->getSize() - minSize) / (maxSize-minSize) + minFont;
 		word->setSize(size);
 	}
 }
@@ -191,7 +189,7 @@ void WordLabel::setSize(int s)
 {
 	size = s;
 	QFont f = font();
-	f.setPixelSize(size);
+	f.setPointSize(size);
 	setFont(f);
 	emit sizeChanged();
 }

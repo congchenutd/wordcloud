@@ -48,8 +48,10 @@ private:
 	FlowLayout* layout;
 	WordList wordList;
 	Thesaurus* thesaurus;
+	int minFont, maxFont;
 	bool controlPressed;   // ctrl pressed when the context menu is triggered
 };
+
 
 class WordLabel : public QLabel
 {
