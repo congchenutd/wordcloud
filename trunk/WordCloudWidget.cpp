@@ -11,9 +11,6 @@
 
 WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 {
-	minFont = UserSetting::getInstance()->getFont().pointSize();
-	maxFont = 2 * minFont;
-
 	layout = new FlowLayout(this, 10, 5, 8);
 	setLayout(layout);
 
@@ -239,4 +236,10 @@ void WordLabel::setRelated(bool relate)
 {
 	related = relate;
 	update();   // repaint
+}
+
+void WordCloudWidget::setFontSize(int min, int max)
+{
+	minFont = min;
+	maxFont = max;
 }
