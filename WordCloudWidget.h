@@ -32,6 +32,7 @@ public:
 	void unrelateAll();    // set all words unrelated
 	void sort();           // reorder the word widgets in the layout
 	bool controlIsPressed() const { return controlPressed; }
+	void setFontSize(int min, int max);
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
