@@ -6,6 +6,8 @@
 #include <QMap>
 #include <QScrollArea>
 
+// A simple word cloud implementation
+
 class FlowLayout;
 class WordLabel;
 class Thesaurus;
@@ -19,20 +21,18 @@ class WordCloudWidget : public QWidget
 
 public:
 	WordCloudWidget(QWidget* parent = 0);
-	void addWord(const QString& text, int size = 12);
+	void addWord(const QString& text, int size = -1);
 	void highLight(const QStringList& words);
 	void removeWord(WordLabel* word);
-	//void removeWord(const QString& text);
 	void renameWord(WordLabel* word, const QString& name);
 	QList<WordLabel*> getSelected() const;
-	void normalizeSizes();
+	void normalizeSizes();                               // recalculate sizes
 	WordLabel* findWord(const QString& text) const;
-//	QList<WordLabel*> findWord(const QString& text, SearchCriteria criteria = EXACTLY);
-	void unselectAll();    // set all words unselected
-	void unrelateAll();    // set all words unrelated
-	void sort();           // reorder the word widgets in the layout
+	void unselectAll();                                  // set all words unselected
+	void unrelateAll();                                  // set all words unrelated
+	void sort();                                         // reorder the labels
 	bool controlIsPressed() const { return controlPressed; }
-	void setFontSize(int min, int max);
+	void setSizeRange(int min, int max);
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
@@ -53,7 +53,7 @@ private:
 	bool controlPressed;   // ctrl pressed when the context menu is triggered
 };
 
-
+// The words
 class WordLabel : public QLabel
 {
 	Q_OBJECT
