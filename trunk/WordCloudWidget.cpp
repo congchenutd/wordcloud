@@ -20,12 +20,14 @@ WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 
 void WordCloudWidget::addWord(const QString& text, int size)
 {
+	if(size == -1)
+		size = minFont;
 	if(!wordList.contains(text))
 	{
 		WordLabel* wordLabel = new WordLabel(text, size, this);
 		layout->addWidget(wordLabel);
 		wordList.insert(text, wordLabel);
-		sort();
+		sort();   // rearrange the order
 	}
 }
 
@@ -40,9 +42,10 @@ void WordCloudWidget::highLight(const QStringList& words)
 
 void WordCloudWidget::mousePressEvent(QMouseEvent* event)
 {
+	// click on blank area
 	WordLabel* clicked = static_cast<WordLabel*>(childAt(event->pos()));
 	if(!clicked)
-		return unselectAll();                     // click on blank area
+		return unselectAll();
 
 	// right click on a selected item, ignore
 	if(event->button() == Qt::RightButton && clicked->isSelected())
@@ -66,6 +69,7 @@ void WordCloudWidget::onThesaurus(const QStringList& list)
 			label->setRelated(true);              // select them
 }
 
+// emit a signal with the double clicked word
 void WordCloudWidget::mouseDoubleClickEvent(QMouseEvent* event)
 {
 	WordLabel* label = static_cast<WordLabel*>(childAt(event->pos()));
@@ -100,13 +104,7 @@ void WordCloudWidget::removeWord(WordLabel* word)
 	word->deleteLater();
 }
 
-//void WordCloudWidget::removeWord(const QString& text)
-//{
-//	WordList::Iterator it = wordList.find(text);
-//	if(it != wordList.end())
-//		removeWord(it.value());
-//}
-
+// recalculate the sizes
 void WordCloudWidget::normalizeSizes()
 {
 	int minSize = 1000;
@@ -129,23 +127,6 @@ WordLabel* WordCloudWidget::findWord(const QString& text) const
 	WordList::ConstIterator it = wordList.find(text);
 	return (it != wordList.end()) ? it.value() : 0;
 }
-
-//QList<WordLabel*> WordCloudWidget::findWord(const QString& text, SearchCriteria criteria)
-//{
-//	QList<WordLabel*> result;
-//	if(criteria == EXACTLY)
-//	{
-//		WordList::ConstIterator it = wordList.find(text);
-//		if(it != wordList.end())
-//			result << it.value();
-//	}
-//	else if(criteria == START_WITH) {
-//		foreach(WordLabel* label, wordList)
-//			if(label->text().startsWith(text, Qt::CaseInsensitive))
-//				result << label->text();
-//	}
-//	return result;
-//}
 
 void WordCloudWidget::onSizeChanged() {
 	normalizeSizes();
@@ -171,6 +152,13 @@ void WordCloudWidget::renameWord(WordLabel* word, const QString& name)
 	word->setText(name);
 	sort();                         // reorder the widgets in the layout
 }
+
+void WordCloudWidget::setSizeRange(int min, int max)
+{
+	minFont = min;
+	maxFont = max;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 WordLabel::WordLabel(const QString& text, int s, QWidget* parent)
@@ -208,7 +196,7 @@ void WordLabel::paintEvent(QPaintEvent*)
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(Qt::yellow);
 		}		
-		if(selected) {     // red rectangle
+		if(selected) {     // red selection rectangle
 			painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
 		}
 		painter.drawRect(rect());
@@ -236,10 +224,4 @@ void WordLabel::setRelated(bool relate)
 {
 	related = relate;
 	update();   // repaint
-}
-
-void WordCloudWidget::setFontSize(int min, int max)
-{
-	minFont = min;
-	maxFont = max;
 }
