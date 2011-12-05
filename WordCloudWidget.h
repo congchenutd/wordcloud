@@ -33,6 +33,7 @@ public:
 	void sort();                                         // reorder the labels
 	bool controlIsPressed() const { return controlPressed; }
 	void setSizeRange(int min, int max);
+	void search(const QString& target);
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
@@ -40,7 +41,7 @@ protected:
 
 private slots:
 	void onSizeChanged();
-	void onThesaurus(const QStringList& list);
+	void onThesaurusResponse(const QStringList& list);
 
 signals:
 	void doubleClicked(QString);

@@ -15,7 +15,7 @@ WordCloudWidget::WordCloudWidget(QWidget *parent) : QWidget(parent)
 	setLayout(layout);
 
 	thesaurus = new BigHugeThesaurus(this);
-	connect(thesaurus, SIGNAL(response(QStringList)), this, SLOT(onThesaurus(QStringList)));
+	connect(thesaurus, SIGNAL(response(QStringList)), this, SLOT(onThesaurusResponse(QStringList)));
 }
 
 void WordCloudWidget::addWord(const QString& text, int size)
@@ -33,13 +33,13 @@ void WordCloudWidget::addWord(const QString& text, int size)
 
 void WordCloudWidget::highLight(const QStringList& words)
 {
-	foreach(WordLabel* word, wordList)   // unhighLight all
-		word->setHighLighted(false);
-	foreach(QString word, words)         // highlight the list
-		if(WordLabel* label = findWord(word))
-			label->setHighLighted(true);
+	unselectAll();
+	unrelateAll();
+	foreach(WordLabel* label, wordList)         // highlight the list
+		label->setHighLighted(words.contains(label->text()));
 }
 
+// select/unselect labels
 void WordCloudWidget::mousePressEvent(QMouseEvent* event)
 {
 	// click on blank area
@@ -61,12 +61,10 @@ void WordCloudWidget::mousePressEvent(QMouseEvent* event)
 	thesaurus->request(clicked->text());
 }
 
-void WordCloudWidget::onThesaurus(const QStringList& list)
+void WordCloudWidget::onThesaurusResponse(const QStringList& list)
 {
-	unrelateAll();                                // reset related status
-	foreach(QString related, list)
-		if(WordLabel* label = findWord(related))
-			label->setRelated(true);              // select them
+	foreach(WordLabel* label, wordList)
+		label->setRelated(list.contains(label->text()));
 }
 
 // emit a signal with the double clicked word
@@ -89,19 +87,19 @@ void WordCloudWidget::unrelateAll() {
 QList<WordLabel*> WordCloudWidget::getSelected() const
 {
 	QList<WordLabel*> result;
-	foreach(WordLabel* word, wordList)
-		if(word->isSelected())
-			result << word;
+	foreach(WordLabel* label, wordList)
+		if(label->isSelected())
+			result << label;
 	return result;
 }
 
-void WordCloudWidget::removeWord(WordLabel* word)
+void WordCloudWidget::removeWord(WordLabel* label)
 {
-	if(word == 0 || !wordList.contains(word->text()))
+	if(label == 0 || !wordList.contains(label->text()))
 		return;
-	layout->removeWidget(word);
-	wordList.remove(word->text());
-	word->deleteLater();
+	layout->removeWidget(label);
+	wordList.remove(label->text());
+	label->deleteLater();
 }
 
 // recalculate the sizes
@@ -109,16 +107,16 @@ void WordCloudWidget::normalizeSizes()
 {
 	int minSize = 1000;
 	int maxSize = 0;
-	foreach(WordLabel* word, wordList)            // find min/max
+	foreach(WordLabel* label, wordList)            // find min/max
 	{
-		minSize = qMin(minSize, word->getSize());
-		maxSize = qMax(maxSize, word->getSize());
+		minSize = qMin(minSize, label->getSize());
+		maxSize = qMax(maxSize, label->getSize());
 	}
-	foreach(WordLabel* word, wordList)
+	foreach(WordLabel* label, wordList)
 	{
 		int size = (maxSize == minSize) ? maxFont :
-			(maxFont-minFont) * (word->getSize() - minSize) / (maxSize-minSize) + minFont;
-		word->setSize(size);
+			(maxFont-minFont) * (label->getSize() - minSize) / (maxSize-minSize) + minFont;
+		label->setSize(size);
 	}
 }
 
@@ -135,22 +133,22 @@ void WordCloudWidget::onSizeChanged() {
 void WordCloudWidget::sort()
 {
 	// clear all words from the layout
-	foreach(WordLabel* word, wordList)
-		layout->removeWidget(word);
+	foreach(WordLabel* label, wordList)
+		layout->removeWidget(label);
 
 	// insert them back in order
 	for(WordList::Iterator it = wordList.begin(); it != wordList.end(); ++it)
 		layout->addWidget(it.value());
 }
 
-void WordCloudWidget::renameWord(WordLabel* word, const QString& name)
+void WordCloudWidget::renameWord(WordLabel* label, const QString& name)
 {
-	if(wordList.contains(name))     // duplicated
+	if(wordList.contains(name))      // duplicated
 		return;
-	wordList.remove(word->text());  // remove the old one from the map
-	wordList.insert(name, word);    // insert the word back, but in a new location in the map
-	word->setText(name);
-	sort();                         // reorder the widgets in the layout
+	wordList.remove(label->text());  // remove the old one from the map
+	wordList.insert(name, label);    // insert the word back, but in a new location in the map
+	label->setText(name);
+	sort();                          // reorder the widgets in the layout
 }
 
 void WordCloudWidget::setSizeRange(int min, int max)
@@ -159,6 +157,14 @@ void WordCloudWidget::setSizeRange(int min, int max)
 	maxFont = max;
 }
 
+void WordCloudWidget::search(const QString& target)
+{
+	if(target.isEmpty())
+		unselectAll();
+	else
+		foreach(WordLabel* label, wordList)
+			label->setSelected(label->text().contains(target, Qt::CaseInsensitive));
+}
 
 //////////////////////////////////////////////////////////////////////////
 WordLabel::WordLabel(const QString& text, int s, QWidget* parent)
