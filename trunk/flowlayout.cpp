@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QWidget>
 
 #include "flowlayout.h"
 //! [1]
