@@ -25,6 +25,7 @@ void WordCloudWidget::addWord(const QString& text, int size)
 	if(!wordList.contains(text))
 	{
 		WordLabel* wordLabel = new WordLabel(text, size, this);
+        connect(wordLabel, SIGNAL(doubleClicked(QString)), this, SIGNAL(doubleClicked(QString)));
 		layout->addWidget(wordLabel);
 		wordList.insert(text, wordLabel);
 		sort();   // rearrange the order
@@ -168,7 +169,7 @@ void WordCloudWidget::search(const QString& target)
 
 //////////////////////////////////////////////////////////////////////////
 WordLabel::WordLabel(const QString& text, int s, QWidget* parent)
-: QLabel(text, parent)
+    : QLabel(text, parent)
 {
 	selected    = false;
 	highLighted = false;
@@ -211,7 +212,13 @@ void WordLabel::paintEvent(QPaintEvent*)
 	// text
 	painter.setBrush(Qt::NoBrush);
 	painter.setPen(QPen());   // use default pen
-	painter.drawText(0, QFontMetrics(font()).tightBoundingRect(text()).height(), text());
+    painter.drawText(0, QFontMetrics(font()).tightBoundingRect(text()).height(), text());
+}
+
+void WordLabel::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    emit doubleClicked(text());
+    return QLabel::mouseDoubleClickEvent(event);
 }
 
 void WordLabel::setHighLighted(bool highLight)

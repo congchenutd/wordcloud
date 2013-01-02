@@ -1,7 +1,7 @@
 #ifndef WORDCLOUDWIDGET_H
 #define WORDCLOUDWIDGET_H
 
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QLabel>
 #include <QMap>
 #include <QScrollArea>
@@ -44,7 +44,7 @@ private slots:
 	void onThesaurusResponse(const QStringList& list);
 
 signals:
-	void doubleClicked(QString);
+    void doubleClicked(const QString&);
 
 private:
 	FlowLayout* layout;
@@ -60,7 +60,7 @@ class WordLabel : public QLabel
 	Q_OBJECT
 
 public:
-	WordLabel(const QString& text, int s, QWidget* parent);
+    WordLabel(const QString& text, int s, QWidget* parent);
 	void setSize       (int s);                          // font size
 	void setHighLighted(bool highLighted);
 	void setRelated    (bool relate);
@@ -71,9 +71,11 @@ public:
 
 protected:
 	virtual void paintEvent(QPaintEvent* event);
+    virtual void mouseDoubleClickEvent(QMouseEvent* event);
 
 signals:
 	void sizeChanged();
+    void doubleClicked(const QString&);
 
 private:
 	bool selected;      // draw a red selection rectangle
